@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
 import json
-import pexpect
 import re
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -16,10 +16,11 @@ file_path = ""
 @app.route("/initialize")
 def pdb_init():
     global pdb_shell, message, line_number
-    pdb_shell = pexpect.spawn("pdb " + file_path)
-    info = pdb_shell.readline().decode()
+    pdb_shell = subprocess.Popen(["python", "-m", "pdb", file_path], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    info = pdb_shell.stdout.read(1).decode()
+    while not re.search("\(Pdb\)", info):
+        info += pdb_shell.stdout.read(1).decode()
     line_number = int(re.search("\((\d+)\)", info).group()[1:-1])
-    pdb_shell.expect("(Pdb)")
     message = "Initialized" 
     return message
 
@@ -34,15 +35,19 @@ def getLineNumber():
 @app.route("/next")
 def next_line():
     global line_number
-    pdb_shell.sendline("n")
-    info = pdb_shell.readline().decode()
+    pdb_shell.stdin.write(b"n\n")
+    pdb_shell.stdin.flush()
+    info = pdb_shell.stdout.read(1).decode()
     output = ""
     while not re.search("\(\d+\)<module>\(\)", info):
-        output += info
-        info = pdb_shell.readline().decode()
+        char = pdb_shell.stdout.read(1).decode()
+        if char == '\n':
+            if re.search("\(Pdb\)", info):
+                output += info[5::]
+            info = ""
+        else: info += char
     line_number = int(re.search("\((\d+)\)", info).group()[1:-1])
-    pdb_shell.expect("(Pdb)")
-    response = {"output": output[5::], "linenumber": line_number}
+    response = {"output": output, "linenumber": line_number}
     return json.dumps(response) 
 
 @app.route("/source", methods=["GET"])

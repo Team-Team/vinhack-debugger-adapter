@@ -15,7 +15,7 @@ setuptools.setup(
     install_requires=['flask',
                       'flask-cors',                     
                       'gitpython',
-                      'freeport',
+                      'pexpect',
                       ],
     classifiers = [
         "Programming Language :: Python :: 3",

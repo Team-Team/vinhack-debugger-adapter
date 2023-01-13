@@ -1,8 +1,0 @@
-README.md
-setup.cfg
-setup.py
-vinhack_debug.egg-info/PKG-INFO
-vinhack_debug.egg-info/SOURCES.txt
-vinhack_debug.egg-info/dependency_links.txt
-vinhack_debug.egg-info/requires.txt
-vinhack_debug.egg-info/top_level.txt

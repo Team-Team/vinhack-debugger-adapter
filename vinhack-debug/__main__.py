@@ -1,28 +1,24 @@
 import git
 import os
 import sys
-
-
-ui_github_repo_link = "https://github.com/Team-Team/vinhack-debugger-build.git"
-
-module_directory = __file__[:-len("/__main__.py")]
-ui_directory = os.path.join(module_directory ,"ui")
-if not os.path.isdir(ui_directory):
-    print("UI Directory is not cloned\nCloning UI Directory...")
-    os.mkdir(ui_directory)
-    git.Git(ui_directory).clone(ui_github_repo_link)
-    print("UI Directory Cloned")
-
 import http.server
 import socketserver
 from os import path
-import asyncio
+import webbrowser
 
-my_host_name = 'localhost'
-my_port = 8000
-my_html_folder_path = os.path.join(ui_directory, "vinhack-debugger-build") 
 
-my_home_page_file_path = 'index.html'
+ui_github_repo_link = "https://github.com/Team-Team/vinhack-debugger-build.git"
+module_directory = __file__[:-len("/__main__.py")]
+ui_directory = os.path.join(module_directory ,"ui")
+print(ui_directory)
+
+def clone_ui():
+    if not os.path.isdir(ui_directory):
+        print("UI Directory is not cloned\nCloning UI Directory...")
+        os.mkdir(ui_directory)
+        git.Git(ui_directory).clone(ui_github_repo_link)
+        print("UI Directory Cloned")
+
 
 
 class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -51,8 +47,23 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(self.getContent(self.getPath()))
 
 
-my_handler = MyHttpRequestHandler
-with socketserver.TCPServer(("", my_port), my_handler) as httpd:
-    print("Http Server Serving at port", my_port)
+
+def start_ui_server():
+    my_host_name = 'localhost'
+    my_port = 6969
+    my_html_folder_path = os.path.join(ui_directory, "vinhack-debugger-build") 
+
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=my_html_folder_path, **kwargs)
+    
+    httpd = socketserver.TCPServer(("", my_port), Handler)
+    webbrowser.open(f"http://127.0.0.1:{my_port}/index.html")
     httpd.serve_forever()
 
+def run():
+    clone_ui()
+    start_ui_server()
+
+run()

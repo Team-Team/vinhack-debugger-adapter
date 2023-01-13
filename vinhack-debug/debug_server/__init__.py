@@ -51,7 +51,7 @@ def next_line():
                 output += info[6::]
             info = ""
         else: info += char
-    variables = [x for x in re.split("[,+-/\*=\s:\<\>\(\)]", line) if x not in ["", "while", "if", "else", "for", "elif"] and not re.search("^\d", x)]
+    variables = [x for x in re.split("[,+-/\*=\s:\<\>\(\)]", line) if x not in ["", "in", "or", "and", "print", "range", "while", "if", "else", "for", "elif"] and not re.search("^\d", x)]
     line_number = int(re.search("\((\d+)\)", info).group()[1:-1])
     response = {"output": output, "linenumber": line_number, "variables": variables}
     return json.dumps(response) 

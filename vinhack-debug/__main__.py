@@ -1,16 +1,17 @@
 import git
+from debug_server import start_debug_adapter
 import os
 import sys
 import http.server
 import socketserver
 from os import path
 import webbrowser
+from threading import Thread
 
 
 ui_github_repo_link = "https://github.com/Team-Team/vinhack-debugger-build.git"
 module_directory = __file__[:-len("/__main__.py")]
 ui_directory = os.path.join(module_directory ,"ui")
-print(ui_directory)
 
 def clone_ui():
     if not os.path.isdir(ui_directory):
@@ -50,7 +51,6 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def start_ui_server():
     my_host_name = 'localhost'
-    my_port = 6969
     my_html_folder_path = os.path.join(ui_directory, "vinhack-debugger-build") 
 
 
@@ -58,12 +58,16 @@ def start_ui_server():
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=my_html_folder_path, **kwargs)
     
-    httpd = socketserver.TCPServer(("", my_port), Handler)
+    httpd = socketserver.TCPServer(("", 0), Handler)
+    my_port = httpd.server_address[1]
     webbrowser.open(f"http://127.0.0.1:{my_port}/index.html")
     httpd.serve_forever()
 
 def run():
+    file_path = os.path.join(os.getcwd(), sys.argv[1])
     clone_ui()
-    start_ui_server()
+    ui_server_thread = Thread(target=start_ui_server)
+    ui_server_thread.start()
+    start_debug_adapter(file_path)
 
 run()
